@@ -25,6 +25,7 @@ proxies = {
 }
 
 session = requests.Session()
+session.proxies = proxies
 adapter = requests.adapters.HTTPAdapter(max_retries=3)
 session.mount('http://', adapter)
 session.mount('https://', adapter)
@@ -130,7 +131,7 @@ def try_login(url, username, password):
     try:
         session = requests.Session()
         session.proxies = proxies
-        response = session.get(url, timeout=10)
+        response = session.get(url, proxies=proxies, timeout=10)
         soup = BeautifulSoup(response.text, 'html.parser')
         form = soup.find('form')
         if not form:
@@ -147,7 +148,7 @@ def try_login(url, username, password):
                     data[name] = password
                 else:
                     data[name] = i.get('value', '')
-        login_response = session.post(action, data=data, timeout=10)
+        login_response = session.post(action, data=data, proxies=proxies, timeout=10)
         if "incorrect" in login_response.text.lower() or "invalid" in login_response.text.lower():
             return False
         return True
@@ -166,7 +167,7 @@ def process_url(queue, onion_links, keywords, quiet, verbose, login_creds):
         visited_links.add(url)
         response = fetch_page(url, verbose)
         if isinstance(response, str) or response is None:
-            if url in retry_queue:
+            if list(retry_queue).count(url) >= 2:
                 permanent_failures.add(url)
             else:
                 retry_queue.append(url)
@@ -272,7 +273,7 @@ Switches:
         t.start()
     try:
         for t in threads:
-            t.join()
+            t.join(timeout=30)
     except KeyboardInterrupt:
         graceful_exit()
 
@@ -298,3 +299,4 @@ Switches:
 
 if __name__ == '__main__':
     main()
+           
