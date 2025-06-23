@@ -228,7 +228,7 @@ def main():
         formatter_class=argparse.RawTextHelpFormatter,
         epilog="""
 Usage example:
-    python3 scraper.py login card -s -t 10
+    python3 DrkScrape.py login card -s -t 10
 
 Switches:
     -s / --silent   : Silent mode (only keyword matches are shown)
